@@ -1,9 +1,11 @@
 import pygame
 import random
+from gametemp import GameTemplate
 from veclib import *
 from seeker import *
+import constants
 
-class Game:
+class Game(GameTemplate):
     def __init__(self, screensize, frps, numseekers):
         self._SCREENWIDTH = screensize[0]
         self._SCREENHEIGHT = screensize[1]
@@ -15,13 +17,13 @@ class Game:
         self._SCREEN = None
         self._END = False
         self._SEEKERSBRAVE = True
-        self._SEEKERSRANGE = 200
-        self._MAXSPEED = 5
+        self._SEEKERSRANGE = 150
+        self._MAXSPEED = 8
         self._ACTIVE = True
         self._IGNORE = False
         self._FONT = False
 
-    def startup(self):
+    def _startup(self):
         pygame.init()
 
         for i in range(self._NUMSEEKERS):
@@ -34,7 +36,7 @@ class Game:
 
         self._TARGET = Vec2(self._SCREENWIDTH/2, self._SCREENHEIGHT/2)
 
-    def update(self):
+    def _update(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._END = True
@@ -72,7 +74,7 @@ class Game:
                 self._text = self._FONT.render('Ignore', False, (255,255,255))
 
 
-    def draw(self):
+    def _draw(self):
         self._SCREEN.fill((0,0,0))
         self._SCREEN.blit(self._text,(0,0))
         pygame.draw.circle(self._SCREEN, self._rangecol, (self._TARGET.x, self._TARGET.y), self._SEEKERSRANGE, 2)
@@ -81,11 +83,11 @@ class Game:
         pygame.display.flip()
 
     def run(self):
-        self.startup()
+        self._startup()
 
         while self._END == False:
             self._CLOCK.tick(self._FPS)
-            self.update()
-            self.draw()
+            self._update()
+            self._draw()
         
         pygame.quit()

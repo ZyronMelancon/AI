@@ -15,14 +15,15 @@ class Seeker:
     def seek(self, target):
         mag = magnitude(Vec2(target.x - self._pos.x, target.y - self._pos.y))
         V = normalize(Vec2(target.x - self._pos.x, target.y - self._pos.y))
-        MaxV = Vec2(V.x * self._max / (mag/2), V.y * self._max / (mag/2))
+        MaxV = Vec2(V.x * self._max / (mag/3), V.y * self._max / (mag/3))
         Force = Vec2(MaxV.x - (self._vector.x / 50), MaxV.y - (self._vector.y / 50))
         return Force
 
     def flee(self, target):
+        self._heading = normalize(self._vector)
         mag = magnitude(Vec2(self._pos.x - target.x, self._pos.y - target.y))
         V = normalize(Vec2(self._pos.x - target.x, self._pos.y - target.y))
-        MaxV = Vec2(V.x * self._max / (mag/2), V.y * self._max / (mag/2))
+        MaxV = Vec2(V.x * self._max / (mag/3), V.y * self._max / (mag/3))
         Force = Vec2(MaxV.x - (self._vector.x / 100), MaxV.y - (self._vector.y / 100)) # Tried to make a smoother steer
         return Force
 
