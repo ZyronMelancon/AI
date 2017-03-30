@@ -2,15 +2,9 @@ import math
 from veclib import *
 import random
 import pygame
+from gameobject import GameObject
 
-class Seeker:
-    def __init__(self, idin, posin, maxin):
-        self._pos = posin
-        self._vector = Vec2(0,0)
-        self._id = idin
-        self._max = maxin
-        self._heading = Vec2(0,0)
-        self._timer = 0
+class Seeker(GameObject):
 
     def seek(self, target):
         mag = magnitude(Vec2(target.x - self._pos.x, target.y - self._pos.y))
@@ -27,14 +21,13 @@ class Seeker:
         Force = Vec2(MaxV.x - (self._vector.x / 100), MaxV.y - (self._vector.y / 100)) # Tried to make a smoother steer
         return Force
 
-    def wander(self, timer):
-        self._timer += 1
-        if self._timer > timer:
-            self._timer = 0
-            Force = normalize(Vec2(random.randrange(-50, 50), random.randrange(-50, 50)))
-            return Vec2(Force.x * self._max, Force.y * self._max)
-        else:
-            return Vec2(0,0)
+    def wander(self):
+        self._timer = 0
+        norm = normalize(self._vector)
+        direc = math.atan2(norm.y, norm.x)
+        direc += (random.randrange(5) - 2.03) / 10
+        Force = normalize(Vec2(math.cos(direc), math.sin(direc)))
+        return Vec2(Force.x * self._max, Force.y * self._max)
 
     def applyForce(self, force):
         self._vector.x += force.x
@@ -43,38 +36,10 @@ class Seeker:
             norm = normalize(self._vector)
             self._vector = Vec2(norm.x * self._max, norm.y * self._max)
 
-    def updatePos(self, maxs):
+    def updatePos(self):
         self._pos.x += self._vector.x
         self._pos.y += self._vector.y
         self._heading = normalize(self._vector)
-
-        # Safety stuff to keep it on the screen
-        if self._pos.x <= 0:
-            self._pos.x = 0
-            self._vector.x = -self._vector.x
-        if self._pos.y <= 0:
-            self._pos.y = 0
-            self._vector.y = -self._vector.y
-        if self._pos.x >= maxs[0]:
-            self._pos.x = maxs[0]
-            self._vector.x = -self._vector.x
-        if self._pos.y >= maxs[1]:
-            self._pos.y = maxs[1]
-            self._vector.y = -self._vector.y
-
-    def update(self, target, brave, seerange, timer, maxs):
-        if magnitude(Vec2(target.x - self._pos.x, target.y - self._pos.y)) < seerange:
-            if brave == True:
-                self.applyForce(self.seek(target))
-            else:
-                self.applyForce(self.flee(target))
-        else:
-            self.applyForce(self.wander(timer))
-        self.updatePos(maxs)
-        
-    def draw(self, screen):
-        pygame.draw.circle(screen, (255,255,255), (int(self._pos.x), int(self._pos.y)), 5)
-           # pygame.draw.line(self._SCREEN, (255,0,0), (int(seekers._pos.x), int(seekers._pos.y)), (int(seekers._pos.x + seekers.velocity.x), int(seekers.position.y + seekers.velocity.y)))
 
     @property
     def position(self):

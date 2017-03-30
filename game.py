@@ -18,16 +18,17 @@ class Game(GameTemplate):
         self._END = False
         self._SEEKERSBRAVE = True
         self._SEEKERSRANGE = 150
-        self._MAXSPEED = 8
+        self._MAXSPEED = 4
         self._ACTIVE = True
         self._IGNORE = False
         self._FONT = False
+        self._SEEKERSIZE = [20, 20]
 
     def _startup(self):
         pygame.init()
 
         for i in range(self._NUMSEEKERS):
-            self._SEEKERS.append(Seeker(i, Vec2(random.randrange(self._SCREENWIDTH),random.randrange(self._SCREENHEIGHT)), self._MAXSPEED))
+            self._SEEKERS.append(Seeker(self._SEEKERSIZE, Vec2(random.randrange(self._SCREENWIDTH),random.randrange(self._SCREENHEIGHT)), self._MAXSPEED))
 
         self._SCREEN = pygame.display.set_mode((self._SCREENWIDTH, self._SCREENHEIGHT))
         pygame.display.set_caption("Steering behavior example")
@@ -56,11 +57,32 @@ class Game(GameTemplate):
 
         if not self._IGNORE:
             for seeker in self._SEEKERS:
-                seeker.update(self._TARGET, self._SEEKERSBRAVE, self._SEEKERSRANGE, 100, [self._SCREENWIDTH, self._SCREENHEIGHT])
+                if magnitude(Vec2(self._TARGET.x - seeker.position.x, self._TARGET.y - seeker.position.y)) < self._SEEKERSRANGE:
+                    if self._SEEKERSBRAVE:
+                        seeker.applyForce(seeker.seek(self._TARGET))
+                    else:
+                        seeker.applyForce(seeker.flee(self._TARGET))
         else:
             for seeker in self._SEEKERS:
-                seeker.applyForce(seeker.wander(100))
-                seeker.updatePos([self._SCREENWIDTH, self._SCREENHEIGHT])
+                seeker.applyForce(seeker.wander())
+                
+        for seeker in self._SEEKERS:
+            seeker.updatePos()
+
+        for seeker in self._SEEKERS:
+            # Boundary stuff
+            if seeker.position.x <= 0:
+                seeker.position.x = 0
+                seeker.velocity.x += 1
+            if seeker.position.y <= 0:
+                seeker.position.y = 0
+                seeker.velocity.y += 1
+            if seeker.position.x >= self._SCREENWIDTH:
+                seeker.position.x = self._SCREENWIDTH
+                seeker.velocity.x -= 1
+            if seeker.position.y >= self._SCREENHEIGHT:
+                seeker.position.y = self._SCREENHEIGHT
+                seeker.velocity.y -= 1
         
         if self._SEEKERSBRAVE == True and self._IGNORE == False:
             self._rangecol = (0,255,0)
@@ -80,6 +102,7 @@ class Game(GameTemplate):
         pygame.draw.circle(self._SCREEN, self._rangecol, (self._TARGET.x, self._TARGET.y), self._SEEKERSRANGE, 2)
         for seeker in self._SEEKERS:
             seeker.draw(self._SCREEN)
+            pygame.draw.line(self._SCREEN, (255,0,0), (int(seeker.position.x), int(seeker.position.y)), (int(seeker.position.x + seeker.velocity.x * 5), int(seeker.position.y + seeker.velocity.y * 5)), 2)
         pygame.display.flip()
 
     def run(self):

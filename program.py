@@ -1,5 +1,5 @@
 from game import Game
 
-PROGRAM = Game([1600,900],60,1000)
+PROGRAM = Game([600,600],80,270)
 
 PROGRAM.run()
