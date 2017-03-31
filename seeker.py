@@ -11,6 +11,8 @@ class Seeker(GameObject):
         V = normalize(Vec2(target.x - self._pos.x, target.y - self._pos.y))
         MaxV = Vec2(V.x * self._max / (mag/3), V.y * self._max / (mag/3))
         Force = Vec2(MaxV.x - (self._vector.x / 50), MaxV.y - (self._vector.y / 50))
+        self.lastforce = Force
+        self._text = 'Seek'
         return Force
 
     def flee(self, target):
@@ -19,26 +21,29 @@ class Seeker(GameObject):
         V = normalize(Vec2(self._pos.x - target.x, self._pos.y - target.y))
         MaxV = Vec2(V.x * self._max / (mag/3), V.y * self._max / (mag/3))
         Force = Vec2(MaxV.x - (self._vector.x / 100), MaxV.y - (self._vector.y / 100)) # Tried to make a smoother steer
+        self.lastforce = Force
+        self._text = 'Flee'
         return Force
 
     def wander(self):
         self._timer = 0
         norm = normalize(self._vector)
-        direc = math.atan2(norm.y, norm.x)
-        direc += (random.randrange(5) - 2.03) / 10
+        direc = random.randrange(314)
         Force = normalize(Vec2(math.cos(direc), math.sin(direc)))
-        return Vec2(Force.x * self._max, Force.y * self._max)
+        self.lastforce = Force
+        self._text = 'Wander'
+        return Vec2(Force.x/3 + self._heading.x, Force.y/3 + self._heading.y)
 
-    def applyForce(self, force):
-        self._vector.x += force.x
-        self._vector.y += force.y
+    def applyForce(self, force, deltatime):
+        self._vector.x += force.x * deltatime
+        self._vector.y += force.y * deltatime
         if magnitude(self._vector) > self._max:
             norm = normalize(self._vector)
             self._vector = Vec2(norm.x * self._max, norm.y * self._max)
 
-    def updatePos(self):
-        self._pos.x += self._vector.x
-        self._pos.y += self._vector.y
+    def updatePos(self, deltatime):
+        self._pos.x += self._vector.x * deltatime
+        self._pos.y += self._vector.y * deltatime
         self._heading = normalize(self._vector)
 
     @property

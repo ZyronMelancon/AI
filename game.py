@@ -6,7 +6,7 @@ from seeker import *
 import constants
 
 class Game(GameTemplate):
-    def __init__(self, screensize, frps, numseekers):
+    def __init__(self, screensize, frps, numseekers, debug, eyecandy):
         self._SCREENWIDTH = screensize[0]
         self._SCREENHEIGHT = screensize[1]
         self._NUMSEEKERS = numseekers
@@ -18,17 +18,20 @@ class Game(GameTemplate):
         self._END = False
         self._SEEKERSBRAVE = True
         self._SEEKERSRANGE = 150
-        self._MAXSPEED = 4
+        self._MAXSPEED = 3
         self._ACTIVE = True
         self._IGNORE = False
         self._FONT = False
         self._SEEKERSIZE = [20, 20]
+        self._DEBUG = debug
+        self._BG = True
+        self._EYECANDY = eyecandy
 
     def _startup(self):
         pygame.init()
 
         for i in range(self._NUMSEEKERS):
-            self._SEEKERS.append(Seeker(self._SEEKERSIZE, Vec2(random.randrange(self._SCREENWIDTH),random.randrange(self._SCREENHEIGHT)), self._MAXSPEED))
+            self._SEEKERS.append(Seeker(self._SEEKERSIZE, Vec2(random.randrange(self._SCREENWIDTH),random.randrange(self._SCREENHEIGHT)), self._MAXSPEED, self._DEBUG, self._EYECANDY))
 
         self._SCREEN = pygame.display.set_mode((self._SCREENWIDTH, self._SCREENHEIGHT))
         pygame.display.set_caption("Steering behavior example")
@@ -51,25 +54,23 @@ class Game(GameTemplate):
                     self._IGNORE = not self._IGNORE
             if event.type == pygame.KEYDOWN:
                 if pygame.key.get_pressed()[pygame.K_SPACE]:
-                    self._ACTIVE = not self._ACTIVE
-                    for seeker in self._SEEKERS:
-                        seeker.velocity = Vec2(0,0)
+                    self._BG = not self._BG
 
         if not self._IGNORE:
             for seeker in self._SEEKERS:
                 if magnitude(Vec2(self._TARGET.x - seeker.position.x, self._TARGET.y - seeker.position.y)) < self._SEEKERSRANGE:
                     if self._SEEKERSBRAVE:
-                        seeker.applyForce(seeker.seek(self._TARGET))
+                        seeker.applyForce(seeker.seek(self._TARGET),self._CLOCK.get_time()/6)
                     else:
-                        seeker.applyForce(seeker.flee(self._TARGET))
+                        seeker.applyForce(seeker.flee(self._TARGET),self._CLOCK.get_time()/6)
+                else:
+                    seeker.applyForce(seeker.wander(),self._CLOCK.get_time()/6)
         else:
             for seeker in self._SEEKERS:
-                seeker.applyForce(seeker.wander())
+                seeker.applyForce(seeker.wander(),self._CLOCK.get_time()/6)
                 
         for seeker in self._SEEKERS:
-            seeker.updatePos()
-
-        for seeker in self._SEEKERS:
+            seeker.updatePos(self._CLOCK.get_time()/6)
             # Boundary stuff
             if seeker.position.x <= 0:
                 seeker.position.x = 0
@@ -97,12 +98,12 @@ class Game(GameTemplate):
 
 
     def _draw(self):
-        self._SCREEN.fill((0,0,0))
         self._SCREEN.blit(self._text,(0,0))
-        pygame.draw.circle(self._SCREEN, self._rangecol, (self._TARGET.x, self._TARGET.y), self._SEEKERSRANGE, 2)
+        if self._BG:
+            self._SCREEN.fill((0,0,0))
+            pygame.draw.circle(self._SCREEN, self._rangecol, (self._TARGET.x, self._TARGET.y), self._SEEKERSRANGE, 2)
         for seeker in self._SEEKERS:
             seeker.draw(self._SCREEN)
-            pygame.draw.line(self._SCREEN, (255,0,0), (int(seeker.position.x), int(seeker.position.y)), (int(seeker.position.x + seeker.velocity.x * 5), int(seeker.position.y + seeker.velocity.y * 5)), 2)
         pygame.display.flip()
 
     def run(self):
