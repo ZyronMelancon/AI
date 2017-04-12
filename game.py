@@ -98,12 +98,12 @@ class Game(GameTemplate):
 
 
     def _draw(self):
-        self._SCREEN.blit(self._text,(0,0))
         if self._BG:
             self._SCREEN.fill((0,0,0))
             pygame.draw.circle(self._SCREEN, self._rangecol, (self._TARGET.x, self._TARGET.y), self._SEEKERSRANGE, 2)
         for seeker in self._SEEKERS:
             seeker.draw(self._SCREEN)
+        self._SCREEN.blit(self._text,(0,0))
         pygame.display.flip()
 
     def run(self):

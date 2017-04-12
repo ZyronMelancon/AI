@@ -26,7 +26,6 @@ class Seeker(GameObject):
         return Force
 
     def wander(self):
-        self._timer = 0
         norm = normalize(self._vector)
         direc = random.randrange(314)
         Force = normalize(Vec2(math.cos(direc), math.sin(direc)))
